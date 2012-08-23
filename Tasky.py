@@ -3,6 +3,7 @@ Class structure for my task list. This will organize the rest of the project.
 """
 
 import uuid
+import datetime
 
 class Task(object):
 
@@ -34,6 +35,12 @@ class Tasklist(object):
 	def remove_task(self,task):
 		if task.id in self.tasks:
 			del self.tasks[task.id]
+		else:
+			raise KeyError, 'Task is not in %s tasklist' % self.title
+
+	def remove_task_by_id(self,id):
+		if id in self.tasks:
+			del self.tasks[id]
 		else:
 			raise KeyError, 'Task is not in %s tasklist' % self.title
 

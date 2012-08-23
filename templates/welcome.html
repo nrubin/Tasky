@@ -1,4 +1,54 @@
 <html>
-Hello, World! The time is {{ now }}.
+<head>
+  <meta charset="utf-8">
+<title>Tasky</title>
+ <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+
+  <script type="text/javascript">
+  $(document).ready(function (){
+  mobj = {};
+
+  mobj.updateTasks = function(){
+  	$.get('/updateTasks',function(result){
+  		console.log("received updated results from server")
+  		var TaskDisplay = document.getElementById('TaskDisplay')
+  		var tasks = JSON.parse(result)
+  		for (var taskID in tasks){
+  			TaskDisplay.innerHTML += tasks[taskID]
+  		};
+  	})
+
+
+  }
+
+
+  mobj.newTask = function(){
+	  	console.log("Sending new task");
+	  	var newTaskContent = document.getElementById('EnterTask').value;
+	  	
+	  	if($.post('/newtask',{'newTaskContent': newTaskContent}, 'JSON')){
+	  		mobj.updateTasks();
+	  		}
+	  	else
+	  		{
+
+	  		console.log('Post failed')
+	  	}
+  	}
+  var UploadTask = document.getElementById("UploadTask");
+  UploadTask.addEventListener('click',mobj.newTask);
+}
+)
+  </script>
+
+</head>
+Hello, World! The time is {{ now }}. Please enter your task below:
+<br />
+
+<input type="text" id="EnterTask" />
+<input type="button" id="UploadTask" value="  Go!  " />
+<div id="TaskDisplay">
+
+</div>
 
 </html>
