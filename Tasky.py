@@ -34,6 +34,7 @@ class Tasklist(object):
 		self.title = title
 		self.priority = priority
 		self.id = uuid.uuid4()
+		self.date_created = datetime.datetime.now()
 
 	def add_task(self,task):
 		if task.id not in self.tasks:
