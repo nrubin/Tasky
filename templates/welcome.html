@@ -8,33 +8,28 @@
   $(document).ready(function (){
   mobj = {};
 
+ 
+
   mobj.updateTasks = function(){
-  	$.get('/updateTasks',function(result){
-  		console.log("received updated results from server")
-  		var TaskDisplay = document.getElementById('TaskDisplay')
-  		var tasks = JSON.parse(result)
-  		for (var taskID in tasks){
-  			TaskDisplay.innerHTML += tasks[taskID]
-  		};
-  	})
-
-
+    $.get('/updateTasks',function(result){
+      console.log("received updated results from server");
+      var TaskDisplay = document.getElementById('TaskDisplay');
+      TaskDisplay.innerHTML = result;
   }
+  )}
 
-
-  mobj.newTask = function(){
-	  	console.log("Sending new task");
-	  	var newTaskContent = document.getElementById('EnterTask').value;
-	  	
-	  	if($.post('/newtask',{'newTaskContent': newTaskContent}, 'JSON')){
-	  		mobj.updateTasks();
-	  		}
-	  	else
-	  		{
-
-	  		console.log('Post failed')
-	  	}
-  	}
+    mobj.newTask = function(){
+    console.log("Sending new task");
+    var newTaskContent = document.getElementById('EnterTask').value;
+    
+    if($.post('/newtask',{'newTaskContent': newTaskContent}, 'JSON')){
+      mobj.updateTasks();
+      }
+    else
+      {
+      console.log('Post failed')
+    }
+  }
   var UploadTask = document.getElementById("UploadTask");
   UploadTask.addEventListener('click',mobj.newTask);
 }
@@ -46,7 +41,7 @@ Hello, World! The time is {{ now }}. Please enter your task below:
 <br />
 
 <input type="text" id="EnterTask" />
-<input type="button" id="UploadTask" value="  Go!  " />
+<input type="button" id="UploadTask" value="  Add Task  " />
 <div id="TaskDisplay">
 
 </div>

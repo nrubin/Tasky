@@ -12,6 +12,7 @@ class Task(object):
 		self.deadline = deadline
 		self.priority = priority
 		self.completed = False
+		self.date_created = datetime.datetime.now()
 		self.id = uuid.uuid4()
 
 	def complete(self):
@@ -19,6 +20,12 @@ class Task(object):
 
 	def uncomplete(self):
 		self.completed = False
+
+	def toDict(self):
+		"""
+		Makes this object easy to serialize :)
+		"""
+		return vars(self)
 
 class Tasklist(object):
 
