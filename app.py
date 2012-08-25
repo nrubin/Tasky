@@ -6,33 +6,45 @@ from flask.ext.login import *
 import uuid
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///TASKY_DB.db'
-app.config['SQLALCHEMY_ECHO'] = True
-app.secret_key = "\x8d\xd4\x9b\xef\x8fB\xa2\x02\xd9\x9a\xd5\xd4\x8eD\x1b'\xdf\n\x8b4\x8fhB\xbb"
-db = SQLAlchemy(app)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///TASKY_DB.db' #set db uri
+app.config['SQLALCHEMY_ECHO'] = True #disable this when not in debug
+app.secret_key = "\x8d\xd4\x9b\xef\x8fB\xa2\x02\xd9\x9a\xd5\xd4\x8eD\x1b'\xdf\n\x8b4\x8fhB\xbb" #4 da sessunz
+db = SQLAlchemy(app) #build the associated db
 login_manager = LoginManager()
-login_manager.setup_app(app)
+login_manager.setup_app(app) #make sure logins work
+current_user = None
 
 @login_manager.user_loader
 def load_user(userid):
+    """
+    Given a user id, returns a User object associated with that id.
+    Used by login manager for login stuff
+    """
     return User.query.filter_by(id=userid).first()
 
 @app.route('/')
-def home():
+def root():
     return render_template('login.html')
 
 @app.route('/login',methods=['GET','POST'])
 def login():
-    if request.method == 'POST':
-        user = User(request.form['username'],request.form['password'])
-        if user.is_authenticated() and user.exists(): 
-            login_user(user)
-            flash("Logged In successfuly")
-            return "here are your tasks"
-            #return redirect(url_for('view_tasks'))
+    if request.method == 'POST': 
+        user = User(request.form['username'],request.form['password']) #make a new user object (not pushed to DB yet)
+        if user.is_authenticated(): #if this user object is legit and is in the DB and the password is right
+            login_user(user) #we will mark the user logged in
+            print user
+            current_user = user
+            return redirect(url_for('home'))
         else:
             return 'User was not successfully authenticated'
     return render_template('login.html')
+
+@app.route("/logout")
+@login_required
+def logout():
+    db.session.commit()
+    logout_user()
+    return 'goodbye'
 
 @app.route('/newaccount',methods=['POST'])
 def create_account():
@@ -40,26 +52,42 @@ def create_account():
     if not new_user.exists():
         db.session.add(new_user)
         db.session.commit()
-        return "here are your tasks"
-        #return redirect(url_for('view_tasks'))
+        return redirect(url_for('home'))
     else:
         flash("You already exist")
         return 'you already exist'
 
 
+@app.route('/home')
+@login_required
+def home():
+    my_tasklists = Tasklist.query.filter_by(parent_user_id=current_user.get_id())
+    my_tasks = Tasks.query.filter_by(parent_user_id=current_user.get_id())
+    task_data = {}
+    for tasklist in my_tasklists:
+        data[tasklist.id] = [task for task in my_tasks if task.parent_tasklist_id == tasklist.id]
+    render_template('home.html',task_data = task_data)
 
-def view_tasks():
-    return "here are your tasks"
-
+@app.route('/createtasklist',methods='POST')
+@login_required
 def create_task_list():
-    pass
+    tasklist_title = request.form['tasklist_title']
+    tasklist_title = request.get('priority',0)
+    current_user_id = current_user.get_id()
+    new_tasklist = Tasklist(current_user_id,tasklist_title,priority)
+    db.session.add(new_tasklist)
+    return 'true'
 
 @app.route('/newtask',methods=['POST'])
 @login_required
 def create_task():
-    newTaskContent = request.form['newTaskContent']
-    newTask = Task(newTaskContent)
-    tasks.append(newTask)
+    task_content = request.form['task_content']
+    deadline = request.get('deadline',None)
+    priority = request.get('priority',0)
+    parent_tasklist_id = request['parent_tasklist_id']
+    current_user_id = current_user.get_id()
+    new_task = Task(parent_tasklist_id,current_user_id,task_content,deadline,priority)
+    db.session.add(new_task)
     return 'true'
 
 @app.route('/updateTasks',methods=['GET'])
@@ -78,14 +106,13 @@ class Task(db.Model):
     priority = db.Column(db.Integer)
     completed = db.Column(db.Boolean)
     archived = db.Column(db.Boolean)
+    parent_user_id = db.Column(db.BigInteger)
+    parent_tasklist_id = db.Column(db.BigInteger)
 
-    #relate it to a user and a task list
-    # tasklist_id = db.Column(db.BigInteger, db.ForeignKey('tasklist.id'))
-    # user_id = db.Column(db.BigInteger, db.ForeignKey('user.id'))
 
 
     #initializes the instance with default values.
-    def __init__(self,content,deadline=None,priority=0):
+    def __init__(self,parent_tasklist_id,parent_user_id,content,deadline=None,priority=0):
         self.content = content
         self.deadline = deadline
         self.priority = priority
@@ -93,8 +120,8 @@ class Task(db.Model):
         self.date_created = datetime.utcnow()
         self.id = uuid.uuid4().hex
         self.archived = False
-        self.tasklist = tasklist
-        self.user = user
+        self.tasklist = parent_tasklist_id
+        self.user = parent_user_id
 
     def __repr__(self):
         return "Task: \'%s\' with id %s" % (self.content,self.id)
@@ -120,18 +147,17 @@ class Tasklist(db.Model):
     title = db.Column(db.String)
     priority = db.Column(db.Integer)
     archived = db.Column(db.Boolean)
-    # tasks = db.relationship("Task",backref="tasklists")
+    parent_user_id = db.Column(db.BigInteger)
 
 
 
-    def __init__(self,title,priority=0):
-        self.tasks = {}
+    def __init__(self,parent_user_id,title,priority=0):
+        self.parent_user_id = parent_user_id
         self.title = title
         self.priority = priority
         self.id = uuid.uuid4().hex
         self.date_created = datetime.utcnow()
         self.archived = False
-        self.user = user
 
     def __repr__(self):
         return "Tasklist: \'%s\' with id %s" % (self.title,self.id)
@@ -152,9 +178,6 @@ class User(db.Model):
     password = db.Column(db.String)
     date_created = db.Column(db.DateTime)
 
-    # tasks = db.relationship("Task",backref="users")
-    # tasklists = db.relationship("Tasklist",backref="users")
-
     def __init__(self,username,password):
         self.id = uuid.uuid4().hex
         self.username = username
@@ -171,12 +194,9 @@ class User(db.Model):
         or the user exists but has the wrong password,
         or the user doesn't exist and therefore the password doesn't matter
         """
-        print 'authenticating'
         user_query = User.query.filter_by(username=self.username).first()
         if user_query is not None:
-            print 'username exists'
             if user_query.password == self.password:
-                print 'password works'
                 return True
         return False
 
@@ -192,7 +212,6 @@ class User(db.Model):
         return unicode(user_query.id)
 
     def exists(self):
-        print self.id, self.username, self.password
         return (not (User.query.filter_by(username=self.username).first() == None))
 
 
