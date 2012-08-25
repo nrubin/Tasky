@@ -13,6 +13,10 @@ db = SQLAlchemy(app)
 login_manager = LoginManager()
 login_manager.setup_app(app)
 
+@login_manager.user_loader
+def load_user(userid):
+    return User.query.filter_by(id=userid).first()
+
 @app.route('/')
 def home():
     return render_template('login.html')
@@ -20,12 +24,14 @@ def home():
 @app.route('/login',methods=['GET','POST'])
 def login():
     if request.method == 'POST':
-        print 'about to create user object'
         user = User(request.form['username'],request.form['password'])
-        print 'ive created the object'
-        login_user(user)
-        flash("Logged In successfuly")
-        return redirect(url_for('view_tasks'))
+        if user.is_authenticated() and user.exists(): 
+            login_user(user)
+            flash("Logged In successfuly")
+            return "here are your tasks"
+            #return redirect(url_for('view_tasks'))
+        else:
+            return 'User was not successfully authenticated'
     return render_template('login.html')
 
 @app.route('/newaccount',methods=['POST'])
@@ -33,15 +39,17 @@ def create_account():
     new_user = User(request.form['username'],request.form['password'])
     if not new_user.exists():
         db.session.add(new_user)
-        return redirect(url_for('view_tasks'))
+        db.session.commit()
+        return "here are your tasks"
+        #return redirect(url_for('view_tasks'))
     else:
         flash("You already exist")
-        return 'fuck you'
+        return 'you already exist'
 
 
 
 def view_tasks():
-    return render_template('welcome.html',now=str(datetime.utcnow()),tasks=[])
+    return "here are your tasks"
 
 def create_task_list():
     pass
@@ -83,7 +91,7 @@ class Task(db.Model):
         self.priority = priority
         self.completed = False
         self.date_created = datetime.utcnow()
-        self.id = uuid.uuid4().int
+        self.id = uuid.uuid4().hex
         self.archived = False
         self.tasklist = tasklist
         self.user = user
@@ -120,7 +128,7 @@ class Tasklist(db.Model):
         self.tasks = {}
         self.title = title
         self.priority = priority
-        self.id = uuid.uuid4().int
+        self.id = uuid.uuid4().hex
         self.date_created = datetime.utcnow()
         self.archived = False
         self.user = user
@@ -148,7 +156,7 @@ class User(db.Model):
     # tasklists = db.relationship("Tasklist",backref="users")
 
     def __init__(self,username,password):
-        self.id = uuid.uuid4().int
+        self.id = uuid.uuid4().hex
         self.username = username
         self.password = password
         self.date_created = datetime.utcnow()
@@ -180,12 +188,12 @@ class User(db.Model):
         return False
 
     def get_id(self):
-        'I am looking for this user'
         user_query = User.query.filter_by(username=self.username).first()
         return unicode(user_query.id)
 
     def exists(self):
-        return (not User.query.filter_by(username=self.username) == None)
+        print self.id, self.username, self.password
+        return (not (User.query.filter_by(username=self.username).first() == None))
 
 
 if __name__ == '__main__':
