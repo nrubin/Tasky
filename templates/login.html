@@ -1,0 +1,53 @@
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+  <meta name="author" content="">
+  <link rel="shortcut icon" href="/static/favicon.ico">
+
+  <!-- HTML5 shim, for IE 6-8 support of HTML elements -->
+  <!--[if lt IE 9]>
+    <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+
+  <link rel="stylesheet" href="/static/css/bootstrap.css">
+  <link rel="stylesheet" href="/static/css/bootstrap-responsive.css">
+  <link rel="stylesheet/less" href="/static/css/main.less">
+  <!-- Rather use `less.js` to dynamically compile your `stylesheet/less` files? -->
+  <script src="http://cdnjs.cloudflare.com/ajax/libs/less.js/1.1.5/less-1.1.5.min.js"></script>
+  <script>window.less || document.write('<script src="/static/js/less.js">\x3C/script>')</script>
+<title>Tasky - Login</title>
+ <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+</head>
+<div id="header" style="padding-left: 20px; padding-top: 20px;">
+<h1> Welcome to Tasky! </h1> <br />
+</div>
+<div id="login-content" style="padding-left: 20px;" >
+	<form action="/login" method="POST">
+		<span> Username! </span> 
+		<br /> 
+		<input type="text" name="username" /> <br />
+		<span> Password! </span> 
+		<br /> 
+		<input type="password" name="password"/> <br />
+		<input type="submit" value="Log Me In!!" />
+	</form>		
+</div>
+<div id="create-account-content" style="padding-left: 20px">
+<h2> New here? Make an account! </h2><br />
+	<form action="/newaccount" method="POST">
+		<span> Email! </span>
+		 <br /> 
+		 <input type="text" name="email" /><br />
+		<span> Username! </span>
+		 <br /> 
+		 <input type="text" name="username" /> <br />
+		<span> Password! </span>
+		 <br /> 
+		<input type="password" name="password"/> <br />
+		 <input type="submit" value="Gimme an Account!" />
+	</form>
+</div>
+
+</html> 
