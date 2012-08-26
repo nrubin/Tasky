@@ -19,17 +19,17 @@ def load_user(userid):
     Given a user id, returns a User object associated with that id.
     Used by login manager for login stuff
     """
-    print "I am %s and my daddy is %s" % (whoami(),whosmydaddy())
+    # print "I am %s and my daddy is %s" % (whoami(),whosmydaddy())
     return User.query.filter_by(id=userid).first()
 
 @app.route('/')
 def root():
-    print "I am %s and my daddy is %s" % (whoami(),whosmydaddy())
+    # print "I am %s and my daddy is %s" % (whoami(),whosmydaddy())
     return render_template('login.html')
 
 @app.route('/login',methods=['GET','POST'])
 def login():
-    print "I am %s and my daddy is %s" % (whoami(),whosmydaddy())
+    # print "I am %s and my daddy is %s" % (whoami(),whosmydaddy())
     if request.method == 'POST': 
         user = User(request.form['username'],request.form['password']) #make a new user object (not pushed to DB yet)
         if user.is_authenticated(): #if this user object is legit and is in the DB and the password is right
@@ -43,14 +43,14 @@ def login():
 @app.route("/logout")
 @login_required
 def logout():
-    print "I am %s and my daddy is %s" % (whoami(),whosmydaddy())
+    # print "I am %s and my daddy is %s" % (whoami(),whosmydaddy())
     db.session.commit()
     logout_user()
     return 'goodbye'
 
 @app.route('/newaccount',methods=['POST'])
 def create_account():
-    print "I am %s and my daddy is %s" % (whoami(),whosmydaddy())
+    # print "I am %s and my daddy is %s" % (whoami(),whosmydaddy())
     new_user = User(request.form['username'],request.form['password'])
     if not new_user.exists():
         db.session.add(new_user)
@@ -65,7 +65,7 @@ def create_account():
 @login_required
 def home():
     current_user_id = session['user_id']
-    print "I am %s and my daddy is %s" % (whoami(),whosmydaddy())
+    # print "I am %s and my daddy is %s" % (whoami(),whosmydaddy())
     my_tasklists = Tasklist.query.filter_by(parent_user_id=current_user_id)
     my_tasks = Task.query.filter_by(parent_user_id=current_user_id)
     task_data = {}
@@ -76,7 +76,7 @@ def home():
 @app.route('/createtasklist',methods='POST')
 @login_required
 def create_task_list():
-    print "I am %s and my daddy is %s" % (whoami(),whosmydaddy())
+    # print "I am %s and my daddy is %s" % (whoami(),whosmydaddy())
     current_user_id = session['user_id']
     tasklist_title = request.form['tasklist_title']
     tasklist_title = request.get('priority',0)
@@ -88,7 +88,7 @@ def create_task_list():
 @app.route('/newtask',methods=['POST'])
 @login_required
 def create_task():
-    print "I am %s and my daddy is %s" % (whoami(),whosmydaddy())
+    # print "I am %s and my daddy is %s" % (whoami(),whosmydaddy())
     current_user_id = session['user_id']
     task_content = request.form['task_content']
     deadline = request.get('deadline',None)
@@ -100,7 +100,7 @@ def create_task():
 
 @app.route('/updateTasks',methods=['GET'])
 def update_tasks():
-    print "I am %s and my daddy is %s" % (whoami(),whosmydaddy())
+    # print "I am %s and my daddy is %s" % (whoami(),whosmydaddy())
     return render_template('task.html',tasks=sorted(tasks, key=lambda task: task.date_created,reverse=True))
 
 
@@ -115,8 +115,8 @@ class Task(db.Model):
     priority = db.Column(db.Integer)
     completed = db.Column(db.Boolean)
     archived = db.Column(db.Boolean)
-    parent_user_id = db.Column(db.BigInteger)
-    parent_tasklist_id = db.Column(db.BigInteger)
+    parent_user_id = db.Column(db.BigInteger,db.ForeignKey('users.id'))
+    parent_tasklist_id = db.Column(db.BigInteger,db.ForeignKey('tasklists.id'))
 
 
 
@@ -129,8 +129,8 @@ class Task(db.Model):
         self.date_created = datetime.utcnow()
         self.id = uuid.uuid4().hex
         self.archived = False
-        self.tasklist = parent_tasklist_id
-        self.user = parent_user_id
+        self.parent_tasklist_id = parent_tasklist_id
+        self.parent_user_id = parent_user_id
 
     def __repr__(self):
         return "Task: \'%s\' with id %s" % (self.content,self.id)
@@ -156,7 +156,8 @@ class Tasklist(db.Model):
     title = db.Column(db.String)
     priority = db.Column(db.Integer)
     archived = db.Column(db.Boolean)
-    parent_user_id = db.Column(db.BigInteger)
+    parent_user_id = db.Column(db.BigInteger,db.ForeignKey('users.id'))
+    tasks = db.relationship('Task')
 
 
 
@@ -186,6 +187,7 @@ class User(db.Model):
     username = db.Column(db.String)
     password = db.Column(db.String)
     date_created = db.Column(db.DateTime)
+    tasklists = db.relationship('Tasklist')
 
     def __init__(self,username,password):
         self.id = uuid.uuid4().hex

@@ -1,63 +1,33 @@
-<html>
-<head>
-  <meta charset="utf-8">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="">
-  <meta name="author" content="">
-  <link rel="shortcut icon" href="/static/favicon.ico">
-
-  <!-- HTML5 shim, for IE 6-8 support of HTML elements -->
-  <!--[if lt IE 9]>
-    <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
-  <![endif]-->
-
-  <link rel="stylesheet" href="/static/css/bootstrap.css">
-  <link rel="stylesheet" href="/static/css/bootstrap-responsive.css">
-  <link rel="stylesheet/less" href="/static/css/main.less">
-  {% block css %}{% endblock %}
-
-  <!-- Rather use `less.js` to dynamically compile your `stylesheet/less` files? -->
-  <script src="http://cdnjs.cloudflare.com/ajax/libs/less.js/1.1.5/less-1.1.5.min.js"></script>
-  <script>window.less || document.write('<script src="/static/js/less.js">\x3C/script>')</script>
-<title>Tasky</title>
- <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
-
+{% extends 'base.html' %}
   <script type="text/javascript">
-  $(document).ready(function (){
+  $(document).ready(function() {
   mobj = {};
-
- 
-
-  mobj.updateTasks = function(){
-    $.get('/updateTasks',function(result){
+  mobj.updateTasks = function() {
+    $.get('/updateTasks', function(result) {
       console.log("received updated results from server");
       var TaskDisplay = document.getElementById('TaskDisplay');
       TaskDisplay.innerHTML = result;
+    })
   }
-  )}
-
-    mobj.newTask = function(){
+  mobj.newTask = function() {
     console.log("Sending new task");
     var newTaskContent = document.getElementById('EnterTask').value;
-    
-    if($.post('/newtask',{'newTaskContent': newTaskContent}, 'JSON')){
+    if ($.post('/newtask', {
+      'newTaskContent': newTaskContent
+    }, 'JSON')) {
       mobj.updateTasks();
-      }
-    else
-      {
+    } else {
       console.log('Post failed')
     }
   }
   var UploadTask = document.getElementById("UploadTask");
-  UploadTask.addEventListener('click',mobj.newTask);
-}
-)
+  UploadTask.addEventListener('click', mobj.newTask);
+})
   </script>
-
 </head>
+<div id="content">
 
-<h1>Welcome to Tasky! </h1>
+
 {% for tasklist, tasks in task_data %}
 <h2>{{ tasklist.title }} </h2>
 {% for task in tasks %}
@@ -67,7 +37,7 @@
 <br />
 {% endfor %}
 {% endfor %}
-
+</div>
 
 
 </html>
