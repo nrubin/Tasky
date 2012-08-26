@@ -1,43 +1,95 @@
 {% extends 'base.html' %}
+{% block main %}
   <script type="text/javascript">
   $(document).ready(function() {
-  mobj = {};
-  mobj.updateTasks = function() {
-    $.get('/updateTasks', function(result) {
-      console.log("received updated results from server");
-      var TaskDisplay = document.getElementById('TaskDisplay');
-      TaskDisplay.innerHTML = result;
-    })
-  }
-  mobj.newTask = function() {
-    console.log("Sending new task");
-    var newTaskContent = document.getElementById('EnterTask').value;
-    if ($.post('/newtask', {
-      'newTaskContent': newTaskContent
+  mobj = {}; //for scoping
+
+  mobj.addTasklist = function() {
+    console.log("Sending new tasklist");
+    newTasklistTitle = document.getElementById("add-tasklist-title").value;
+    newTasklistPriorityValue = document.getElementById("add-tasklist-title").value;
+    newTasklistPriority = (newTasklistPriorityValue) ? newTasklistPriorityValue : 0;
+    console.log('vars worked')
+    if ($.post('/createtasklist', {
+      'newTasklistTitle' : newTasklistTitle,
+      'newTasklistPriority' : newTasklistPriority
     }, 'JSON')) {
-      mobj.updateTasks();
+      mobj.updateTasklists();
     } else {
-      console.log('Post failed')
+      console.log('Adding new tasklist failed')
     }
   }
-  var UploadTask = document.getElementById("UploadTask");
-  UploadTask.addEventListener('click', mobj.newTask);
+    
+  mobj.updateTasklists = function() {
+      $.get('/updatetasklists', function(result) {
+      console.log("received updated tasklists from server");
+      tasklists = result
+      list_of_tasklists = document.createElement('div');
+      for (var i = tasklists.length - 1; i >= 0; i--) {
+        tasklist = tasklists[i];
+        var thisdiv = document.createElement('div');
+        thisdiv.id = "tasklist" + tasklist['tasklistID'];
+        var taskTitle = document.createElement('span');
+        taskTitle.innerHTML = tasklist['tasklistTitle'];
+        var taskPriorty = document.createElement('span');
+        taskPriorty.innerHTML = tasklist['tasklistPriority'];
+        if (tasklist['archived'] === 'true'){
+          console.log('this is archived'); //do something if the tasklist is archived
+        }
+        thisdiv.innerHTML = taskTitle + taskPriorty;
+        list_of_tasklists.innerHTML += thisdiv;
+      };
+      var tasklists = document.getElementById('tasklists');
+      tasklists.innerHTML = list_of_tasklists.innerHTML;
+    })
+  }
+
+
+  // mobj.updateTasks = function() {
+  //   $.get('/updateTasks', function(result) {
+  //     console.log("received updated results from server");
+  //     var TaskDisplay = document.getElementById('TaskDisplay');
+  //     TaskDisplay.innerHTML = result;
+  //   })
+  // }
+  // mobj.newTask = function() {
+  //   console.log("Sending new task");
+  //   var newTaskContent = document.getElementById('EnterTask').value;
+  //   if ($.post('/newtask', {
+  //     'newTaskContent': newTaskContent
+  //   }, 'JSON')) {
+  //     mobj.updateTasks();
+  //   } else {
+  //     console.log('Post failed');
+  //   }
+  // }
+  //var UploadTask = document.getElementById("UploadTask");
+  //UploadTask.addEventListener('click', mobj.newTask);
+  var createTasklistButton = document.getElementById("add-tasklist-submit");
+  createTasklistButton.addEventListener('click',mobj.addTasklist);
 })
   </script>
-</head>
-<div id="content">
 
-
-{% for tasklist, tasks in task_data %}
-<h2>{{ tasklist.title }} </h2>
-{% for task in tasks %}
-<div id="{{ task.id }}">
-{{ task.content }}
+<div id="tasklists">
+  {% for tasklist in task_data.keys() %}
+    <h2>{{ tasklist.title }} </h2>
+    {% for task in task_data[tasklist.div] %}
+    <id id="{{ task.id }}">
+    {{ task.content }}
+    </div>
+    <br />
+    {% endfor %}
+  {% endfor %}
 </div>
-<br />
-{% endfor %}
-{% endfor %}
+<div id="add-tasklist">
+  <span> Name a new tasklist!! </span>
+  <input id="add-tasklist-title" type="text"  />
+  <span> Give it a priority if you want!! </span>
+  <input id="add-tasklist-priority" type="text" />
+  <input id="add-tasklist-submit" type="button" value="  Add new tasklist!!  " />
+</div>
+<div id="add-task">
+
 </div>
 
-
-</html>
+{% endblock %}

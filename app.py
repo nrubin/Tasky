@@ -8,7 +8,7 @@ import inspect
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///TASKY_DB.db' #set db uri
-app.config['SQLALCHEMY_ECHO'] = True #disable this when not in debug
+app.config['SQLALCHEMY_ECHO'] = False #disable this when not in debug
 app.secret_key = "\x8d\xd4\x9b\xef\x8fB\xa2\x02\xd9\x9a\xd5\xd4\x8eD\x1b'\xdf\n\x8b4\x8fhB\xbb" #4 da sessunz
 db = SQLAlchemy(app) #build the associated db
 login_manager = LoginManager()
@@ -70,20 +70,33 @@ def home():
     my_tasks = Task.query.filter_by(parent_user_id=current_user_id)
     task_data = {}
     for tasklist in my_tasklists:
-        data[tasklist.id] = [task for task in my_tasks if task.parent_tasklist_id == tasklist.id]
+        task_data[tasklist.id] = [task for task in my_tasks if task.parent_tasklist_id == tasklist.id]
     return render_template('home.html',task_data = task_data)
 
-@app.route('/createtasklist',methods='POST')
+@app.route('/createtasklist',methods=['GET','POST'])
 @login_required
-def create_task_list():
-    # print "I am %s and my daddy is %s" % (whoami(),whosmydaddy())
+def create_tasklist():
+    if request.method == 'POST':
+        print 'Creating tasklist....'
+        current_user_id = session['user_id']
+        tasklist_title = request.form['newTasklistTitle']
+        tasklist_priority = request.form['newTasklistPriority']
+        new_tasklist = Tasklist(current_user_id,tasklist_title,tasklist_priority)
+        db.session.add(new_tasklist)
+        db.session.commit()
+        return 'true'
+    else:
+        print 'Why is this a get request...'
+        return redirect(url_for('home'))
+
+
+@app.route('/updatetasklists')
+@login_required
+def update_tasklists():
     current_user_id = session['user_id']
-    tasklist_title = request.form['tasklist_title']
-    tasklist_title = request.get('priority',0)
-    current_user_id = current_user_id
-    new_tasklist = Tasklist(current_user_id,tasklist_title,priority)
-    db.session.add(new_tasklist)
-    return 'true'
+    tasklists = Tasklist.query.filter_by(parent_user_id=current_user_id)
+    tasklists_serializable = [ {'tasklistTitle' : tasklist.title, 'tasklistPriority' : tasklist.priority,'tasklistID' : str(tasklist.id),'tasklistArchived' : 'true' if tasklist.archived else 'false'} for tasklist in tasklists]
+    return(json.dumps(tasklists_serializable))
 
 @app.route('/newtask',methods=['POST'])
 @login_required
