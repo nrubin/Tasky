@@ -23,24 +23,26 @@
   mobj.updateTasklists = function() {
       $.get('/updatetasklists', function(result) {
       console.log("received updated tasklists from server");
-      tasklists = result
-      list_of_tasklists = document.createElement('div');
-      for (var i = tasklists.length - 1; i >= 0; i--) {
-        tasklist = tasklists[i];
+      tasklists = JSON.parse(result)
+      var list_of_tasklists = document.createElement('div');
+      for (tasklistNumber in tasklists) {
+        tasklist = tasklists[tasklistNumber];
         var thisdiv = document.createElement('div');
-        thisdiv.id = "tasklist" + tasklist['tasklistID'];
         var taskTitle = document.createElement('span');
-        taskTitle.innerHTML = tasklist['tasklistTitle'];
         var taskPriorty = document.createElement('span');
+        thisdiv.id = "tasklist" + tasklist['tasklistID'];
+        taskTitle.innerHTML = tasklist['tasklistTitle'];
         taskPriorty.innerHTML = tasklist['tasklistPriority'];
-        if (tasklist['archived'] === 'true'){
-          console.log('this is archived'); //do something if the tasklist is archived
-        }
-        thisdiv.innerHTML = taskTitle + taskPriorty;
-        list_of_tasklists.innerHTML += thisdiv;
-      };
+        // if (tasklist['archived'] === 'true'){
+        //   console.log('this is archived'); //do something if the tasklist is archived
+        // }
+        thisdiv.appendChild(taskTitle);
+        thisdiv.appendChild(taskPriorty);
+        list_of_tasklists.appendChild(thisdiv)
+      }
+      console.log('the list of tasklists looks like: ' + list_of_tasklists)
       var tasklists = document.getElementById('tasklists');
-      tasklists.innerHTML = list_of_tasklists.innerHTML;
+      tasklists.appendChild(list_of_tasklists);
     })
   }
 
@@ -73,7 +75,7 @@
 <div id="tasklists">
   {% for tasklist in task_data.keys() %}
     <h2>{{ tasklist.title }} </h2>
-    {% for task in task_data[tasklist.div] %}
+    {% for task in task_data[tasklist.id] %}
     <id id="{{ task.id }}">
     {{ task.content }}
     </div>
