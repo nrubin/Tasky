@@ -8,12 +8,17 @@ import inspect
 import os
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///TASKY_DB.db' #set db uri
-app.config['SQLALCHEMY_ECHO'] = False #disable this when not in debug
-app.secret_key = "\x8d\xd4\x9b\xef\x8fB\xa2\x02\xd9\x9a\xd5\xd4\x8eD\x1b'\xdf\n\x8b4\x8fhB\xbb" #4 da sessunz
-db = SQLAlchemy(app) #build the associated db
+app.config['SQLALCHEMY_ECHO'] = False #disable this when not in debugb
+try:
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['HEROKU_POSTGRESQL_CHARCOAL_URL']
+except Exception, e:
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgres://zoqildggxrupww:dVDnEUC06bujR0f4KdKwsxN8QB@ec2-54-243-223-183.compute-1.amazonaws.com:5432/dcrp5s2fabjl85'
+db = SQLAlchemy(app)
+metadata = MetaData()
 login_manager = LoginManager()
 login_manager.setup_app(app) #make sure logins work
+
+
 @login_manager.user_loader
 def load_user(userid):
     """
@@ -244,6 +249,8 @@ def whoami():
 
 def whosmydaddy():
     return inspect.stack()[2][3]
+
+app.secret_key = "\x8d\xd4\x9b\xef\x8fB\xa2\x02\xd9\x9a\xd5\xd4\x8eD\x1b'\xdf\n\x8b4\x8fhB\xbb" #4 da sessu
 
 
 if __name__ == '__main__':
