@@ -24,12 +24,10 @@ def load_user(userid):
     Given a user id, returns a User object associated with that id.
     Used by login manager for login stuff
     """
-    # print "I am %s and my daddy is %s" % (whoami(),whosmydaddy())
     return User.query.filter_by(id=userid).first()
 
 @app.route('/')
 def root():
-    # print "I am %s and my daddy is %s" % (whoami(),whosmydaddy())
     return render_template('login.html')
 
 @app.route('/login',methods=['GET','POST'])
@@ -70,12 +68,13 @@ def create_account():
 @login_required
 def home():
     current_user_id = session['user_id']
-    # print "I am %s and my daddy is %s" % (whoami(),whosmydaddy())
-    my_tasklists = Tasklist.query.filter_by(parent_user_id=current_user_id)
-    my_tasks = Task.query.filter_by(parent_user_id=current_user_id)
+    my_tasklists = Tasklist.query.filter_by(parent_user_id=current_user_id).all()
+    my_tasks = Task.query.filter_by(parent_user_id=current_user_id).all()
+    print "my tasks are ", my_tasks
     task_data = {}
     for tasklist in my_tasklists:
         task_data[tasklist.id] = [task for task in my_tasks if task.parent_tasklist_id == tasklist.id]
+    print task_data
     return render_template('home.html',task_data = task_data)
 
 @app.route('/createtasklist',methods=['GET','POST'])

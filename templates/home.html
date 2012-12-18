@@ -74,10 +74,10 @@
 
 <div id="tasklists">
   {% for tasklist in task_data.keys() %}
-    <h2>{{ tasklist.title }} </h2>
+    <h2>{{ tasklist }} </h2>
     {% for task in task_data[tasklist.id] %}
     <id id="{{ task.id }}">
-    {{ task.content }}
+    {{ str(task.content) }}
     </div>
     <br />
     {% endfor %}
