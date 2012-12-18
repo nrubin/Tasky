@@ -12,9 +12,8 @@ app.config['SQLALCHEMY_ECHO'] = False #disable this when not in debugb
 try:
     app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['HEROKU_POSTGRESQL_CHARCOAL_URL']
 except Exception, e:
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgres://zoqildggxrupww:dVDnEUC06bujR0f4KdKwsxN8QB@ec2-54-243-223-183.compute-1.amazonaws.com:5432/dcrp5s2fabjl85'
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///TASKY_DB.db' #set db uri
 db = SQLAlchemy(app)
-metadata = MetaData()
 login_manager = LoginManager()
 login_manager.setup_app(app) #make sure logins work
 
